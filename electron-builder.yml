@@ -1,0 +1,29 @@
+appId: "com.kdarak.mba-desk"
+productName: "MBA Desk"
+copyright: "Copyright © 2026 Krishna Darak"
+
+directories:
+  output: release
+
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - node_modules/**/*
+  - package.json
+
+asar: true
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: assets/icon.ico
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  installerIcon: assets/icon.ico
+  shortcutName: "MBA Desk"
+
+extraMetadata:
+  main: dist-electron/main.js

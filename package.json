@@ -1,0 +1,61 @@
+{
+  "name": "mba-desk",
+  "version": "1.0.0",
+  "description": "MBA Newspaper Intelligence Desktop App",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "node dev.js",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build:vite": "vite build",
+    "build": "npm run build:electron && npm run build:vite",
+    "package": "npm run build && electron-builder",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [],
+  "author": "Krishna Darak",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "concurrently": "^8.2.2",
+    "electron": "^31.3.1",
+    "electron-builder": "^24.13.3",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.6",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.4",
+    "vitest": "^2.0.3"
+  },
+  "dependencies": {
+    "@google/genai": "^1.0.1",
+    "better-sqlite3": "^11.1.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.25.0",
+    "zod": "^3.23.8"
+  },
+  "build": {
+    "appId": "com.kdarak.mba-desk",
+    "productName": "MBA Desk",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
