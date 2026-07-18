@@ -5,11 +5,12 @@ import { ProcessingState } from '../App';
 
 interface Props {
   processing: ProcessingState;
-  onUpload: (navigate: (path: string) => void) => void;
+  onUpload: (limit: string, navigate: (path: string) => void) => void;
 }
 
 export default function Home({ processing, onUpload }: Props) {
   const [history, setHistory] = useState<Upload[]>([]);
+  const [limit, setLimit] = useState('all');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,7 +55,7 @@ export default function Home({ processing, onUpload }: Props) {
         {/* Upload card */}
         <div className="w-full max-w-lg">
           <button
-            onClick={busy ? undefined : () => onUpload(navigate)}
+            onClick={busy ? undefined : () => onUpload(limit, navigate)}
             disabled={busy}
             className={`w-full rounded-2xl border-2 border-dashed p-12 flex flex-col items-center gap-4 transition-all
               ${busy
@@ -80,6 +81,21 @@ export default function Home({ processing, onUpload }: Props) {
                 <div className="text-center">
                   <p className="text-white font-semibold text-lg">Upload Newspaper PDF</p>
                   <p className="text-slate-400 text-sm mt-1">Click to select a PDF from your computer</p>
+                  
+                  <div className="mt-4 flex items-center justify-center gap-3">
+                    <span className="text-slate-400 text-sm">Limit articles:</span>
+                    <select
+                      className="bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500 hover:bg-slate-700 transition"
+                      value={limit}
+                      onChange={(e) => setLimit(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <option value="all">All</option>
+                      <option value="5">Top 5</option>
+                      <option value="10">Top 10</option>
+                      <option value="20">Top 20</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold text-sm transition">
                   Choose File

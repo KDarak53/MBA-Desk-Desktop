@@ -128,7 +128,7 @@ function checkBannedPhrases(articles: z.infer<typeof ArticleSchema>[]): string[]
 
 // ── Main export ────────────────────────────────────────────────────────────────
 
-export async function processNewspaperPdf(filePath: string, apiKey: string): Promise<Report> {
+export async function processNewspaperPdf(filePath: string, apiKey: string, limit: string = 'all'): Promise<Report> {
   const ai = new GoogleGenAI({ apiKey });
 
   // Read as binary Buffer -> Blob so the SDK doesn't try string conversions on path
@@ -161,7 +161,7 @@ export async function processNewspaperPdf(filePath: string, apiKey: string): Pro
                 role: 'user',
                 parts: [
                   { fileData: { fileUri: fileUpload.uri, mimeType: fileUpload.mimeType } },
-                  { text: USER_PROMPT },
+                  { text: USER_PROMPT + (limit !== 'all' ? `\n\nONLY EXTRACT THE TOP ${limit} MOST IMPORTANT ARTICLES. DO NOT EXCEED THIS LIMIT.` : '') },
                 ],
               }],
               config: {

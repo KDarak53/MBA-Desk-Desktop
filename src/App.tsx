@@ -38,7 +38,7 @@ export default function App() {
     return () => clearTimeout(t);
   }, []);
 
-  const handleUpload = useCallback(async (navigate: (path: string) => void) => {
+  const handleUpload = useCallback(async (limit: string, navigate: (path: string) => void) => {
     setProcessing({ stage: 'picking', error: '' });
     try {
       const filePath = await window.mbaDesk.pickPdf();
@@ -46,7 +46,7 @@ export default function App() {
 
       setProcessing({ stage: 'processing', error: '' });
       // This Promise lives in App — survives navigation away from Home
-      const report = await window.mbaDesk.processPdf(filePath) as any;
+      const report = await window.mbaDesk.processPdf(filePath, limit) as any;
       setProcessing({ stage: 'done', error: '' });
       navigate(`/report/${report.upload.id}`);
       // Reset after navigation

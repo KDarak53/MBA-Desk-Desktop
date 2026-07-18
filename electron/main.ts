@@ -65,12 +65,12 @@ function registerIpcHandlers() {
   });
 
   // Process a PDF through Gemini and persist to DB
-  ipcMain.handle(IPC.PROCESS_PDF, async (_event, filePath: string) => {
+  ipcMain.handle(IPC.PROCESS_PDF, async (_event, filePath: string, limit: string) => {
     const cfg = getConfig();
     if (!cfg.geminiApiKey) {
       throw new Error('NO_API_KEY');
     }
-    const report = await processNewspaperPdf(filePath, cfg.geminiApiKey);
+    const report = await processNewspaperPdf(filePath, cfg.geminiApiKey, limit);
     return report;
   });
 
