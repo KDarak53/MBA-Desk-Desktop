@@ -1,8 +1,10 @@
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import Home from './pages/Home';
-import Report from './pages/Report';
-import ArticleDetail from './pages/ArticleDetail';
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import Home from './pages/newspaper/Home';
+import Report from './pages/newspaper/Report';
+import ArticleDetail from './pages/newspaper/ArticleDetail';
 import Settings from './pages/Settings';
 
 type InitState = 'loading' | 'ready' | 'no-key' | 'error';
@@ -88,13 +90,30 @@ export default function App() {
           path="/"
           element={
             initState === 'ready'
-              ? <Home processing={processing} onUpload={handleUpload} />
+              ? <Layout />
               : <Navigate to="/settings" replace />
           }
+        >
+          {/* Dashboard is the default index route */}
+          <Route index element={<Dashboard processing={processing} />} />
+          
+          {/* Newspaper tool nested routes */}
+          <Route path="newspaper/home" element={<Home processing={processing} onUpload={handleUpload} />} />
+          <Route path="newspaper/report/:uploadId" element={<Report />} />
+          <Route path="newspaper/report/:uploadId/article/:articleId" element={<ArticleDetail />} />
+          
+          <Route path="settings" element={<Settings onSave={() => setInitState('ready')} isProcessing={processing.stage === 'picking' || processing.stage === 'processing'} />} />
+        </Route>
+        
+        {/* Settings outside layout for first-run login */}
+        <Route 
+          path="/settings" 
+          element={
+            initState === 'ready' 
+              ? <Navigate to="/" replace /> 
+              : <Settings onSave={() => setInitState('ready')} />
+          } 
         />
-        <Route path="/report/:uploadId" element={<Report />} />
-        <Route path="/report/:uploadId/article/:articleId" element={<ArticleDetail />} />
-        <Route path="/settings" element={<Settings onSave={() => setInitState('ready')} isProcessing={processing.stage === 'picking' || processing.stage === 'processing'} />} />
       </Routes>
     </div>
   );

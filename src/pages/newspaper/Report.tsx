@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
-import { Report as ReportType, Article, FUNCTIONS } from '../types';
-import ArticleCard from '../components/ArticleCard';
+import { Report as ReportType, Article, FUNCTIONS } from '../../types';
+import ArticleCard from '../../components/ArticleCard';
 
 type SortKey = 'score' | 'page';
 

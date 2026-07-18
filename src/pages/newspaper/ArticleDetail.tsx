@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
-import { Article } from '../types';
-import SwotGrid from '../components/SwotGrid';
-import StrategicRead from '../components/StrategicRead';
+import { Article } from '../../types';
+import SwotGrid from '../../components/SwotGrid';
+import StrategicRead from '../../components/StrategicRead';
 
 export default function ArticleDetail() {
   const { uploadId, articleId } = useParams<{ uploadId: string; articleId: string }>();
@@ -10,7 +10,7 @@ export default function ArticleDetail() {
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const backHref = `/report/${uploadId}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+  const backHref = `/newspaper/report/${uploadId}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
 
   useEffect(() => {
     if (!uploadId) return;

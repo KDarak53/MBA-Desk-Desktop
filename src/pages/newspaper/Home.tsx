@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Upload } from '../types';
-import { ProcessingState } from '../App';
+import { Upload } from '../../types';
+import { ProcessingState } from '../../App';
 
 interface Props {
   processing: ProcessingState;
@@ -120,7 +120,7 @@ export default function Home({ processing, onUpload }: Props) {
               {history.map((u: Upload) => (
                 <Link
                   key={u.id}
-                  to={`/report/${u.id}`}
+                  to={`/newspaper/report/${u.id}`}
                   className="flex items-center justify-between p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-600 hover:bg-slate-800 transition group"
                 >
                   <div className="min-w-0">

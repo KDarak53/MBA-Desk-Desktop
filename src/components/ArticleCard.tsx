@@ -16,7 +16,7 @@ const SCORE_STYLES: Record<number, string> = {
 };
 
 export default function ArticleCard({ article, uploadId, currentParams }: Props) {
-  const href = `/report/${uploadId}/article/${article.id}${currentParams ? `?${currentParams}` : ''}`;
+  const href = `/newspaper/report/${uploadId}/article/${article.id}${currentParams ? `?${currentParams}` : ''}`;
   const scoreStyle = SCORE_STYLES[article.relevanceScore] ?? SCORE_STYLES[1];
 
   return (
