@@ -1,7 +1,11 @@
 import { GoogleGenAI } from '@google/genai';
 import { z } from 'zod';
 import { saveReport } from './db';
-import { FUNCTIONS, Report } from '../src/types';
+
+// Inline to avoid cross-rootDir imports
+const FUNCTIONS = ['Finance','Operations','Marketing','HR','Product Management','Analytics','Consulting'] as const;
+type FunctionTag = typeof FUNCTIONS[number];
+interface Report { upload: { id: number; filename: string; pageCount: number; articleCount: number; createdAt: string }; articles: any[]; }
 
 // ── Zod Schema (mirrors src/types.ts Article shape) ────────────────────────────
 

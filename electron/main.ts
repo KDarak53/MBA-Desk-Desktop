@@ -4,7 +4,7 @@ import { initDb } from './db';
 import { getConfig, saveConfig } from './config';
 import { processNewspaperPdf } from './gemini';
 import { exportReport } from './export';
-import { IPC } from '../src/types';
+import { IPC } from './ipc-channels';
 
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
@@ -36,8 +36,8 @@ function createWindow() {
 
 // ── App lifecycle ──────────────────────────────────────────────────────────────
 
-app.whenReady().then(() => {
-  initDb();
+app.whenReady().then(async () => {
+  await initDb();
   registerIpcHandlers();
   createWindow();
 

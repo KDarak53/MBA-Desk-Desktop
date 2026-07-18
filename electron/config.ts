@@ -1,7 +1,8 @@
 import { app } from 'electron';
 import path from 'path';
 import fs from 'fs';
-import { AppConfig } from '../src/types';
+
+interface AppConfig { geminiApiKey: string; }
 
 const configPath = path.join(app.getPath('userData'), 'config.json');
 

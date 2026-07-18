@@ -1,7 +1,9 @@
 import { BrowserWindow } from 'electron';
 import fs from 'fs';
 import path from 'path';
-import { Report } from '../src/types';
+
+// Inline to avoid cross-rootDir import
+type Report = { upload: { filename: string; articleCount: number; createdAt: string }; articles: any[] };
 
 export async function exportReport(
   format: 'pdf' | 'markdown',
@@ -55,7 +57,7 @@ function buildMarkdown(report: Report): string {
 
     if (a.strategicRead.length > 0) {
       lines.push(`### The Strategic Read`);
-      a.strategicRead.forEach((s, i) => lines.push(`${i + 1}. ${s}`));
+      a.strategicRead.forEach((s: string, i: number) => lines.push(`${i + 1}. ${s}`));
       lines.push('');
     }
   }
