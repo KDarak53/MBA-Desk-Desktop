@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export default function Settings({ onSave }: { onSave?: () => void }) {
+export default function Settings({ onSave, isProcessing }: { onSave?: () => void; isProcessing?: boolean }) {
   const [apiKey, setApiKey] = useState('');
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -45,6 +45,16 @@ export default function Settings({ onSave }: { onSave?: () => void }) {
       <div style={{ width: '100%', maxWidth: 420 }}>
 
         {/* Logo / heading */}
+        {isProcessing && (
+          <div style={{ marginBottom: 24, padding: '12px 16px', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 16, height: 16, border: '2px solid #60a5fa', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+            <div>
+              <p style={{ color: '#93c5fd', fontSize: 13, fontWeight: 500, margin: 0 }}>Processing in background...</p>
+              <p style={{ color: '#60a5fa', fontSize: 12, margin: '2px 0 0 0', opacity: 0.8 }}>You can safely change settings.</p>
+            </div>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        )}
         <div style={{ marginBottom: 32, textAlign: 'center' }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>📰</div>
           <h1 style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 24, margin: 0 }}>MBA Desk</h1>

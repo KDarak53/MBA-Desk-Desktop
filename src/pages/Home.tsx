@@ -1,48 +1,40 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Upload } from '../types';
+import { ProcessingState } from '../App';
 
-type Stage = 'idle' | 'picking' | 'processing' | 'done' | 'error';
+interface Props {
+  processing: ProcessingState;
+  onUpload: (navigate: (path: string) => void) => void;
+}
 
-export default function Home() {
-  const [stage, setStage] = useState<Stage>('idle');
-  const [error, setError] = useState('');
+export default function Home({ processing, onUpload }: Props) {
   const [history, setHistory] = useState<Upload[]>([]);
-  const [newUploadId, setNewUploadId] = useState<number | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    window.mbaDesk.getAllUploads().then(setHistory);
-  }, []);
+    window.mbaDesk.getAllUploads().then((uploads: any) => setHistory(uploads));
+  }, [
+    // Refresh history when processing finishes
+    processing.stage === 'done' ? 'done' : null
+  ]);
 
-  async function handleUpload() {
-    setError('');
-    setStage('picking');
-    try {
-      const filePath = await window.mbaDesk.pickPdf();
-      if (!filePath) { setStage('idle'); return; }
-
-      setStage('processing');
-      const report = await window.mbaDesk.processPdf(filePath);
-      setNewUploadId(report.upload.id);
-      setStage('done');
-      navigate(`/report/${report.upload.id}`);
-    } catch (err: any) {
-      if (err?.message === 'NO_API_KEY') {
-        setError('Gemini API key not set. Go to Settings first.');
-      } else {
-        setError(err?.message ?? 'Processing failed. Please try again.');
-      }
-      setStage('error');
+  // Reload history when a new report lands
+  useEffect(() => {
+    if (processing.stage === 'done' || processing.stage === 'idle') {
+      window.mbaDesk.getAllUploads().then((uploads: any) => setHistory(uploads));
     }
-  }
+  }, [processing.stage]);
 
   async function handleDelete(e: React.MouseEvent, uploadId: number) {
     e.preventDefault();
     e.stopPropagation();
     await window.mbaDesk.deleteUpload(uploadId);
-    setHistory((h) => h.filter((u) => u.id !== uploadId));
+    setHistory((h) => h.filter((u: Upload) => u.id !== uploadId));
   }
+
+  const { stage, error } = processing;
+  const busy = stage === 'processing' || stage === 'picking';
 
   return (
     <div className="min-h-full bg-slate-950 flex flex-col">
@@ -53,7 +45,7 @@ export default function Home() {
           <p className="text-xs text-slate-400 mt-0.5">Upload a newspaper PDF for your intelligence report</p>
         </div>
         <Link to="/settings" className="text-slate-400 hover:text-white transition text-sm px-3 py-1.5 rounded-lg hover:bg-slate-800">
-          ⚙ Settings
+          &#9881; Settings
         </Link>
       </nav>
 
@@ -62,10 +54,10 @@ export default function Home() {
         {/* Upload card */}
         <div className="w-full max-w-lg">
           <button
-            onClick={stage === 'idle' || stage === 'error' || stage === 'done' ? handleUpload : undefined}
-            disabled={stage === 'processing' || stage === 'picking'}
+            onClick={busy ? undefined : () => onUpload(navigate)}
+            disabled={busy}
             className={`w-full rounded-2xl border-2 border-dashed p-12 flex flex-col items-center gap-4 transition-all
-              ${stage === 'processing' || stage === 'picking'
+              ${busy
                 ? 'border-blue-500/50 bg-blue-950/30 cursor-wait'
                 : 'border-slate-700 hover:border-blue-500 hover:bg-slate-900 cursor-pointer'
               }`}
@@ -73,17 +65,18 @@ export default function Home() {
             {stage === 'processing' ? (
               <>
                 <div className="w-12 h-12 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-                <p className="text-blue-300 font-semibold">Analysing with Gemini…</p>
-                <p className="text-slate-500 text-sm">This takes 30–90 seconds for a full newspaper</p>
+                <p className="text-blue-300 font-semibold">Analysing with Gemini...</p>
+                <p className="text-slate-500 text-sm">This takes 60-120 seconds for a full newspaper</p>
+                <p className="text-slate-600 text-xs mt-1">You can navigate freely — processing continues in the background</p>
               </>
             ) : stage === 'picking' ? (
               <>
-                <span className="text-4xl">📂</span>
-                <p className="text-slate-300">Opening file picker…</p>
+                <span className="text-4xl">&#128194;</span>
+                <p className="text-slate-300">Opening file picker...</p>
               </>
             ) : (
               <>
-                <span className="text-5xl">📰</span>
+                <span className="text-5xl">&#128240;</span>
                 <div className="text-center">
                   <p className="text-white font-semibold text-lg">Upload Newspaper PDF</p>
                   <p className="text-slate-400 text-sm mt-1">Click to select a PDF from your computer</p>
@@ -97,7 +90,7 @@ export default function Home() {
 
           {error && (
             <div className="mt-4 p-4 bg-red-950/50 border border-red-800 rounded-xl text-red-300 text-sm flex items-start gap-2">
-              <span>⚠</span>
+              <span>&#9888;</span>
               <span>{error}</span>
             </div>
           )}
@@ -108,7 +101,7 @@ export default function Home() {
           <div className="w-full max-w-lg">
             <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-3">Past Reports</h2>
             <div className="space-y-2">
-              {history.map((u) => (
+              {history.map((u: Upload) => (
                 <Link
                   key={u.id}
                   to={`/report/${u.id}`}
@@ -117,16 +110,16 @@ export default function Home() {
                   <div className="min-w-0">
                     <p className="text-white font-medium text-sm truncate">{u.filename}</p>
                     <p className="text-slate-400 text-xs mt-0.5">
-                      {u.articleCount} articles · {new Date(u.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {u.articleCount} articles &middot; {new Date(u.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 ml-4 shrink-0">
-                    <span className="text-slate-500 group-hover:text-white text-sm transition">→</span>
+                    <span className="text-slate-500 group-hover:text-white text-sm transition">&#8594;</span>
                     <button
                       onClick={(e) => handleDelete(e, u.id)}
                       className="text-slate-600 hover:text-red-400 transition text-xs px-2 py-1 rounded"
                       title="Delete"
-                    >✕</button>
+                    >&#10005;</button>
                   </div>
                 </Link>
               ))}
