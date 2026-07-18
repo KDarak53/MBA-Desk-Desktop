@@ -45,25 +45,40 @@ let dbPath: string;
 export async function initDb(): Promise<void> {
   dbPath = path.join(app.getPath('userData'), 'mba-desk.db');
 
-  // sql.js needs the WASM binary — point it to the file inside node_modules
-  const wasmPath = path.join(
-    app.getAppPath(),
-    'node_modules',
-    'sql.js',
-    'dist',
-    'sql-wasm.wasm'
-  );
+  // Locate sql-wasm.wasm — works both in dev (node_modules) and packaged (resources/app.asar)
+  const possibleWasmPaths = [
+    // Dev: project root / node_modules
+    path.join(__dirname, '..', 'node_modules', 'sql.js', 'dist', 'sql-wasm.wasm'),
+    // Packaged: next to the asar
+    path.join(process.resourcesPath ?? '', 'sql-wasm.wasm'),
+    // Alternative dev location
+    path.join(app.getAppPath(), 'node_modules', 'sql.js', 'dist', 'sql-wasm.wasm'),
+  ];
 
-  const SQL = await initSqlJs({ locateFile: () => wasmPath });
+  const wasmPath = possibleWasmPaths.find(p => fs.existsSync(p));
+  if (!wasmPath) {
+    console.error('sql-wasm.wasm not found in:', possibleWasmPaths);
+    throw new Error('sql-wasm.wasm not found — cannot initialise database');
+  }
+
+  console.log('[db] Using WASM at:', wasmPath);
+
+  const wasmBuffer = fs.readFileSync(wasmPath);
+  const wasmBinary: ArrayBuffer = wasmBuffer.buffer.slice(
+    wasmBuffer.byteOffset,
+    wasmBuffer.byteOffset + wasmBuffer.byteLength
+  ) as ArrayBuffer;
+  const SQL = await initSqlJs({ wasmBinary });
 
   if (fs.existsSync(dbPath)) {
     const fileBuffer = fs.readFileSync(dbPath);
     db = new SQL.Database(fileBuffer);
+    console.log('[db] Loaded existing database from', dbPath);
   } else {
     db = new SQL.Database();
+    console.log('[db] Created new database at', dbPath);
   }
 
-  db.run(`PRAGMA journal_mode = WAL;`);
   db.run(`
     CREATE TABLE IF NOT EXISTS uploads (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -90,6 +105,7 @@ export async function initDb(): Promise<void> {
   `);
 
   persist();
+  console.log('[db] Ready');
 }
 
 // ── Persist to disk ─────────────────────────────────────────────────────────────

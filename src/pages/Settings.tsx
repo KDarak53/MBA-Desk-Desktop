@@ -1,90 +1,110 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppConfig } from '../types';
 
 export default function Settings({ onSave }: { onSave?: () => void }) {
   const [apiKey, setApiKey] = useState('');
-  const [dataDir, setDataDir] = useState('');
   const [saved, setSaved] = useState(false);
-  const [clearing, setClearing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    window.mbaDesk.getConfig().then((cfg) => {
-      setApiKey(cfg.geminiApiKey);
-    });
+    if (typeof window.mbaDesk !== 'undefined') {
+      window.mbaDesk.getConfig().then((cfg: any) => {
+        setApiKey(cfg?.geminiApiKey ?? '');
+      }).catch(() => {});
+    }
   }, []);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    await window.mbaDesk.saveConfig({ geminiApiKey: apiKey });
-    setSaved(true);
-    onSave?.();
-    setTimeout(() => { setSaved(false); navigate('/'); }, 1200);
-  }
-
-  async function handleOpenDataDir() {
-    await window.mbaDesk.openDataDir();
+    if (!apiKey.trim()) return;
+    setSaving(true);
+    try {
+      await window.mbaDesk.saveConfig({ geminiApiKey: apiKey.trim() });
+      setSaved(true);
+      onSave?.();
+      setTimeout(() => navigate('/'), 1000);
+    } catch (err) {
+      console.error('Save failed:', err);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
-    <div className="min-h-full bg-slate-950 flex flex-col items-center justify-center p-8">
-      <div className="w-full max-w-md">
-        <h1 className="text-2xl font-bold text-white mb-1">Settings</h1>
-        <p className="text-slate-400 text-sm mb-8">Configure your API key and local data</p>
+    <div style={{
+      minHeight: '100vh',
+      background: '#0f172a',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 32,
+      fontFamily: 'Inter, system-ui, sans-serif',
+    }}>
+      <div style={{ width: '100%', maxWidth: 420 }}>
 
-        <form onSubmit={handleSave} className="space-y-6">
-          {/* API Key */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-2" htmlFor="apiKey">
+        {/* Logo / heading */}
+        <div style={{ marginBottom: 32, textAlign: 'center' }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>📰</div>
+          <h1 style={{ color: '#f1f5f9', fontWeight: 700, fontSize: 24, margin: 0 }}>MBA Desk</h1>
+          <p style={{ color: '#64748b', fontSize: 14, marginTop: 6 }}>Enter your Gemini API key to get started</p>
+        </div>
+
+        <form onSubmit={handleSave}>
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ display: 'block', color: '#94a3b8', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
               Gemini API Key
             </label>
             <input
-              id="apiKey"
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="AIza…"
-              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              placeholder="AIzaSy…"
+              autoFocus
+              required
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                background: '#1e293b',
+                border: '1px solid #334155',
+                borderRadius: 12,
+                color: '#f1f5f9',
+                fontSize: 14,
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
             />
-            <p className="text-xs text-slate-500 mt-1.5">
-              Get your key at{' '}
-              <span className="text-blue-400">ai.google.dev</span>.
-              Stored locally in your AppData folder — never transmitted anywhere.
+            <p style={{ color: '#475569', fontSize: 12, marginTop: 8 }}>
+              Get your free key at <span style={{ color: '#60a5fa' }}>aistudio.google.com</span> → Get API Key
             </p>
           </div>
 
-          {/* Local data */}
-          <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-2">Local Data</label>
-            <button
-              type="button"
-              onClick={handleOpenDataDir}
-              className="w-full px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-300 text-sm text-left transition flex items-center justify-between"
-            >
-              <span>Open data folder in Explorer</span>
-              <span className="text-slate-500">↗</span>
-            </button>
-            <p className="text-xs text-slate-500 mt-1.5">
-              Reports, articles, and config are stored in AppData\Roaming\MBA Desk
-            </p>
-          </div>
-
-          {/* Save */}
           <button
             type="submit"
-            className={`w-full py-3 rounded-xl font-semibold text-sm transition
-              ${saved
-                ? 'bg-emerald-600 text-white'
-                : 'bg-blue-600 hover:bg-blue-500 text-white'
-              }`}
+            disabled={!apiKey.trim() || saving}
+            style={{
+              width: '100%',
+              padding: '13px 0',
+              background: saved ? '#16a34a' : (apiKey.trim() ? '#2563eb' : '#1e3a5f'),
+              color: '#fff',
+              border: 'none',
+              borderRadius: 12,
+              fontSize: 15,
+              fontWeight: 600,
+              cursor: apiKey.trim() ? 'pointer' : 'not-allowed',
+              transition: 'background 0.2s',
+            }}
           >
-            {saved ? '✓ Saved — returning…' : 'Save & Continue'}
+            {saved ? '✓ Saved! Opening…' : saving ? 'Saving…' : 'Save & Continue →'}
           </button>
         </form>
 
-        <div className="mt-6 text-center">
-          <button onClick={() => navigate(-1)} className="text-slate-500 hover:text-slate-300 text-xs transition">
+        <div style={{ marginTop: 24, textAlign: 'center' }}>
+          <button
+            onClick={() => navigate(-1)}
+            style={{ background: 'none', border: 'none', color: '#475569', fontSize: 13, cursor: 'pointer' }}
+          >
             ← Go back
           </button>
         </div>
