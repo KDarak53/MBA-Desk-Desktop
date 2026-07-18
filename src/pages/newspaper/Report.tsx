@@ -62,7 +62,7 @@ export default function Report() {
     setSearchParams((prev) => { prev.set(key, value); return prev; });
   }
 
-  async function handleExport(format: 'pdf' | 'markdown') {
+  async function handleExport(format: 'markdown') {
     if (!uploadId) return;
     setExporting(true);
     try { await window.mbaDesk.exportReport(format, Number(uploadId)); }
@@ -79,7 +79,7 @@ export default function Report() {
   );
 
   return (
-    <div className="min-h-full bg-slate-950 p-8">
+    <div className="h-full overflow-y-auto bg-slate-950 p-8">
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -93,16 +93,9 @@ export default function Report() {
           <button
             onClick={() => handleExport('markdown')}
             disabled={exporting}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition disabled:opacity-50"
-          >
-            {exporting ? '…' : '↓ Markdown'}
-          </button>
-          <button
-            onClick={() => handleExport('pdf')}
-            disabled={exporting}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition disabled:opacity-50"
           >
-            {exporting ? '…' : '↓ PDF'}
+            {exporting ? '…' : '↓ Download Markdown'}
           </button>
         </div>
       </div>

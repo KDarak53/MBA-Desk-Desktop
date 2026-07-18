@@ -25,7 +25,7 @@ contextBridge.exposeInMainWorld('mbaDesk', {
   saveConfig: (config: { geminiApiKey: string }): Promise<boolean> =>
     ipcRenderer.invoke(IPC.SAVE_CONFIG, config),
 
-  exportReport: (format: 'pdf' | 'markdown', uploadId: number): Promise<boolean> =>
+  exportReport: (format: 'markdown', uploadId: number): Promise<boolean> =>
     ipcRenderer.invoke(IPC.EXPORT_REPORT, { format, uploadId }),
 
   openDataDir: (): Promise<boolean> =>

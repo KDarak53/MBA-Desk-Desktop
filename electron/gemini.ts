@@ -156,7 +156,7 @@ export async function processNewspaperPdf(filePath: string, apiKey: string, limi
         while (attempt < maxAttempts) {
           try {
             response = await ai.models.generateContent({
-              model: 'gemini-2.0-flash',
+              model: 'gemini-3.5-flash',
               contents: [{
                 role: 'user',
                 parts: [

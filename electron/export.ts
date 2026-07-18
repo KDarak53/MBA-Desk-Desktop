@@ -6,24 +6,13 @@ import path from 'path';
 type Report = { upload: { filename: string; articleCount: number; createdAt: string }; articles: any[] };
 
 export async function exportReport(
-  format: 'pdf' | 'markdown',
+  format: 'markdown',
   report: Report,
   savePath: string,
   win: BrowserWindow,
 ): Promise<void> {
-  if (format === 'markdown') {
-    const md = buildMarkdown(report);
-    fs.writeFileSync(savePath, md, 'utf-8');
-    return;
-  }
-
-  // PDF — use Electron's printToPDF
-  const data = await win.webContents.printToPDF({
-    printBackground: true,
-    pageSize: 'A4',
-    margins: { top: 0.5, bottom: 0.5, left: 0.5, right: 0.5 },
-  });
-  fs.writeFileSync(savePath, data);
+  const md = buildMarkdown(report);
+  fs.writeFileSync(savePath, md, 'utf-8');
 }
 
 function buildMarkdown(report: Report): string {

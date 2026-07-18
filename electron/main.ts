@@ -105,18 +105,16 @@ function registerIpcHandlers() {
   });
 
   // Export report to PDF or Markdown
-  ipcMain.handle(IPC.EXPORT_REPORT, async (_event, { format, uploadId }: { format: 'pdf' | 'markdown'; uploadId: number }) => {
+  ipcMain.handle(IPC.EXPORT_REPORT, async (_event, { format, uploadId }: { format: 'markdown'; uploadId: number }) => {
     const { getReport } = await import('./db');
     const report = getReport(uploadId);
     if (!report) throw new Error('Report not found');
 
-    const ext = format === 'pdf' ? 'pdf' : 'md';
+    const ext = 'md';
     const savePath = await dialog.showSaveDialog({
       title: 'Export Report',
       defaultPath: `${report.upload.filename.replace('.pdf', '')}-report.${ext}`,
-      filters: format === 'pdf'
-        ? [{ name: 'PDF', extensions: ['pdf'] }]
-        : [{ name: 'Markdown', extensions: ['md'] }],
+      filters: [{ name: 'Markdown', extensions: ['md'] }],
     });
     if (savePath.canceled || !savePath.filePath) return false;
 

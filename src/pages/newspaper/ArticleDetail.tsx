@@ -40,7 +40,7 @@ export default function ArticleDetail() {
     'bg-slate-800 text-slate-400 ring-slate-600';
 
   return (
-    <div className="min-h-full bg-slate-950 p-6 md:p-10">
+    <div className="h-full overflow-y-auto bg-slate-950 p-6 md:p-10">
       <div className="max-w-4xl mx-auto">
 
         {/* Back */}
