@@ -50,7 +50,7 @@ export default function App() {
       // This Promise lives in App — survives navigation away from Home
       const report = await window.mbaDesk.processPdf(filePath, limit) as any;
       setProcessing({ stage: 'done', error: '' });
-      navigate(`/report/${report.upload.id}`);
+      navigate(`/newspaper/report/${report.upload.id}`);
       // Reset after navigation
       setTimeout(() => setProcessing({ stage: 'idle', error: '' }), 500);
     } catch (err: any) {
