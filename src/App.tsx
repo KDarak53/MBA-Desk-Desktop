@@ -83,17 +83,14 @@ export default function App() {
     );
   }
 
+  if (initState === 'no-key') {
+    return <Settings onSave={() => setInitState('ready')} />;
+  }
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <Routes>
-        <Route
-          path="/"
-          element={
-            initState === 'ready'
-              ? <Layout />
-              : <Navigate to="/settings" replace />
-          }
-        >
+        <Route path="/" element={<Layout />}>
           {/* Dashboard is the default index route */}
           <Route index element={<Dashboard processing={processing} />} />
           
@@ -104,16 +101,6 @@ export default function App() {
           
           <Route path="settings" element={<Settings onSave={() => setInitState('ready')} isProcessing={processing.stage === 'picking' || processing.stage === 'processing'} />} />
         </Route>
-        
-        {/* Settings outside layout for first-run login */}
-        <Route 
-          path="/settings" 
-          element={
-            initState === 'ready' 
-              ? <Navigate to="/" replace /> 
-              : <Settings onSave={() => setInitState('ready')} />
-          } 
-        />
       </Routes>
     </div>
   );
