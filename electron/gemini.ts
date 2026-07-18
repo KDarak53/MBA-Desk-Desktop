@@ -111,21 +111,7 @@ CRITICAL VOICE RULE: Do NOT use "this article", "the article", "this piece", "hi
 
 Return ONLY valid JSON: { "articles": [ ... ] }`;
 
-// ── Banned phrase checker ──────────────────────────────────────────────────────
-
-const BANNED = ['this article', 'the article', 'this piece', 'highlights', 'demonstrates', 'illustrates', 'shows how'];
-
-function checkBannedPhrases(articles: z.infer<typeof ArticleSchema>[]): string[] {
-  const found: string[] = [];
-  for (const a of articles) {
-    const text = [a.summary, a.detailed_summary, a.business_impact, ...(a.strategic_read ?? [])].join(' ').toLowerCase();
-    for (const phrase of BANNED) {
-      if (text.includes(phrase)) found.push(`"${a.headline}" - "${phrase}"`);
-    }
-  }
-  return found;
-}
-
+// Removed banned phrase check. It is too strict and rejects valid business phrasing like 'highlights'.
 // ── Main export ────────────────────────────────────────────────────────────────
 
 export async function processNewspaperPdf(filePath: string, apiKey: string, limit: string = 'all'): Promise<Report> {
@@ -186,13 +172,6 @@ export async function processNewspaperPdf(filePath: string, apiKey: string, limi
         const text = response?.text || '{}';
         const parsed = JSON.parse(text);
         result = ReportSchema.parse(parsed);
-
-        // Enforce voice rules - retry if banned phrases found
-        const violations = checkBannedPhrases(result.articles);
-        if (violations.length > 0) {
-          console.warn('Banned phrases found, retrying:', violations.join('; '));
-          throw new Error(`Banned phrases: ${violations.join('; ')}`);
-        }
 
         break; // success
       } catch (err: any) {

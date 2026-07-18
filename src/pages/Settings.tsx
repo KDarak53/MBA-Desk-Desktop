@@ -86,7 +86,7 @@ export default function Settings({ onSave, isProcessing }: { onSave?: () => void
               }}
             />
             <p style={{ color: '#475569', fontSize: 12, marginTop: 8 }}>
-              Get your free key at <span style={{ color: '#60a5fa' }}>aistudio.google.com</span> → Get API Key
+              Get your free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" style={{ color: '#60a5fa', textDecoration: 'underline' }}>aistudio.google.com</a> → Get API Key
             </p>
           </div>
 
