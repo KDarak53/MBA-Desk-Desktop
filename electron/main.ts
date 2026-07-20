@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain, dialog, shell } from 'electron';
+import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import { initDb } from './db';
 import { getConfig, saveConfig } from './config';
@@ -52,6 +53,13 @@ app.whenReady().then(async () => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+
+  // Check for updates silently
+  if (!isDev) {
+    setTimeout(() => {
+      autoUpdater.checkForUpdatesAndNotify();
+    }, 3000);
+  }
 });
 
 app.on('window-all-closed', () => {
