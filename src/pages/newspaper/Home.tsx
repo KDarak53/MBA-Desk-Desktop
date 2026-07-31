@@ -38,7 +38,7 @@ export default function Home({ processing, onUpload }: Props) {
   const busy = stage === 'processing' || stage === 'picking';
 
   return (
-    <div className="min-h-full bg-slate-950 flex flex-col">
+    <div className="h-full overflow-y-auto bg-slate-950 flex flex-col">
       {/* Top nav */}
       <nav className="flex justify-between items-center px-8 py-4 border-b border-slate-800">
         <div>
