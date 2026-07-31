@@ -10,7 +10,7 @@ interface Props {
 
 export default function Home({ processing, onUpload }: Props) {
   const [history, setHistory] = useState<Upload[]>([]);
-  const [limit, setLimit] = useState('all');
+  const [limit, setLimit] = useState('10');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -84,17 +84,16 @@ export default function Home({ processing, onUpload }: Props) {
                   
                   <div className="mt-4 flex items-center justify-center gap-3">
                     <span className="text-slate-400 text-sm">Limit articles:</span>
-                    <select
-                      className="bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500 hover:bg-slate-700 transition"
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      className="bg-slate-800 border border-slate-700 text-white text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500 hover:bg-slate-700 transition w-20 text-center"
                       value={limit}
                       onChange={(e) => setLimit(e.target.value)}
                       onClick={(e) => e.stopPropagation()}
-                    >
-                      <option value="all">All</option>
-                      <option value="5">Top 5</option>
-                      <option value="10">Top 10</option>
-                      <option value="20">Top 20</option>
-                    </select>
+                      placeholder="All"
+                    />
                   </div>
                 </div>
                 <div className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold text-sm transition">
