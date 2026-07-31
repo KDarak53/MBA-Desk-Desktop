@@ -11,16 +11,16 @@ interface QuadrantProps {
 
 function Quadrant({ title, bullets, bg, text, border, dot }: QuadrantProps) {
   return (
-    <div className={`p-4 rounded-xl border ${border} ${bg}`}>
-      <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 opacity-70 ${text}`}>{title}</h3>
-      <ul className="space-y-2">
+    <div className={`p-5 rounded-xl border ${border} ${bg}`}>
+      <h3 className={`text-sm font-bold uppercase tracking-wider mb-4 opacity-80 ${text}`}>{title}</h3>
+      <ul className="space-y-3">
         {bullets.map((b, i) => (
-          <li key={i} className="flex items-start gap-2">
-            <span className={`mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full ${dot}`} />
-            <span className={`text-xs leading-snug ${text}`}>{b}</span>
+          <li key={i} className="flex items-start gap-3">
+            <span className={`mt-2 shrink-0 w-1.5 h-1.5 rounded-full ${dot}`} />
+            <span className={`text-sm leading-relaxed font-medium ${text}`}>{b}</span>
           </li>
         ))}
-        {bullets.length === 0 && <li className="text-xs opacity-40 italic">—</li>}
+        {bullets.length === 0 && <li className="text-sm opacity-40 italic">—</li>}
       </ul>
     </div>
   );
