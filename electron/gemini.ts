@@ -107,94 +107,90 @@ Return ONLY valid JSON: { "articles": [ ... ] }`;
 
 export async function processNewspaperPdf(filePath: string, apiKey: string, limit: string = 'all'): Promise<Report> {
   const ai = new GoogleGenAI({ apiKey });
+  const pdfParse = require('pdf-parse');
 
-  // Read as binary Buffer -> Blob so the SDK doesn't try string conversions on path
   const fileBuffer = fs.readFileSync(filePath);
-  const fileBlob = new Blob([fileBuffer], { type: 'application/pdf' });
   const displayName = path.basename(filePath);
 
-  console.log(`[gemini] Uploading ${displayName} (${(fileBuffer.length / 1024).toFixed(0)} KB)`);
-  const fileUpload = await ai.files.upload({
-    file: fileBlob,
-    config: { displayName, mimeType: 'application/pdf' },
-  });
-  console.log(`[gemini] File uploaded: ${fileUpload.uri}`);
+  console.log(`[gemini] Parsing PDF locally: ${displayName} (${(fileBuffer.length / 1024).toFixed(0)} KB)`);
+  
+  const render_page = async (pageData: any) => {
+    const textContent = await pageData.getTextContent();
+    const text = textContent.items.map((item: any) => item.str).join(' ');
+    return `\n\n[PAGE ${pageData.pageIndex + 1}]\n${text}\n`;
+  };
 
-  try {
-    let result: z.infer<typeof ReportSchema> | undefined;
-    let retries = 2;
+  const pdfData = await pdfParse(fileBuffer, { pagerender: render_page });
+  const extractedText = pdfData.text;
+  
+  console.log(`[gemini] Extracted ${extractedText.length} characters of text. Calling Gemini API...`);
 
-    while (retries >= 0) {
-      try {
-        let response;
-        let attempt = 0;
-        const maxAttempts = 5;
+  let result: z.infer<typeof ReportSchema> | undefined;
+  let retries = 2;
 
-        while (attempt < maxAttempts) {
-          try {
-            response = await ai.models.generateContent({
-              model: 'gemini-3.5-flash',
-              contents: [{
-                role: 'user',
-                parts: [
-                  { fileData: { fileUri: fileUpload.uri, mimeType: fileUpload.mimeType } },
-                  { text: USER_PROMPT + (limit !== 'all' ? `\n\nONLY EXTRACT THE TOP ${limit} MOST IMPORTANT ARTICLES. DO NOT EXCEED THIS LIMIT.` : '') },
-                ],
-              }],
-              config: {
-                systemInstruction: SYSTEM_INSTRUCTION,
-                responseMimeType: 'application/json',
-                temperature: 0.3,
-              },
-            });
-            break;
-          } catch (err: any) {
-            if ((err?.status === 429 || err?.error?.code === 429) && attempt < maxAttempts - 1) {
-              const delay = Math.pow(2, attempt) * 2000;
-              console.warn(`Rate limited, retrying in ${delay}ms`);
-              await new Promise((r) => setTimeout(r, delay));
-              attempt++;
-              continue;
-            }
-            throw err;
+  while (retries >= 0) {
+    try {
+      let response;
+      let attempt = 0;
+      const maxAttempts = 5;
+
+      while (attempt < maxAttempts) {
+        try {
+          response = await ai.models.generateContent({
+            model: 'gemini-3.5-flash',
+            contents: [{
+              role: 'user',
+              parts: [
+                { text: `Here is the extracted text from the newspaper:\n\n${extractedText}` },
+                { text: USER_PROMPT + (limit !== 'all' ? `\n\nONLY EXTRACT THE TOP ${limit} MOST IMPORTANT ARTICLES. DO NOT EXCEED THIS LIMIT.` : '') },
+              ],
+            }],
+            config: {
+              systemInstruction: SYSTEM_INSTRUCTION,
+              responseMimeType: 'application/json',
+              temperature: 0.3,
+            },
+          });
+          break;
+        } catch (err: any) {
+          if ((err?.status === 429 || err?.error?.code === 429) && attempt < maxAttempts - 1) {
+            const delay = Math.pow(2, attempt) * 2000;
+            console.warn(`Rate limited, retrying in ${delay}ms`);
+            await new Promise((r) => setTimeout(r, delay));
+            attempt++;
+            continue;
           }
-        }
-
-        const text = response?.text || '{}';
-        const parsed = JSON.parse(text);
-        result = ReportSchema.parse(parsed);
-
-        break; // success
-      } catch (err: any) {
-        retries--;
-        console.warn('Generation failed, retries left:', retries, err.message);
-        if (retries < 0) {
-          throw new Error('Failed to generate a valid report: ' + err.message);
+          throw err;
         }
       }
-    }
 
-    // Map Gemini output -> DB types -> save to SQLite
-    const articles = (result!.articles).map((a) => ({
-      headline:        a.headline,
-      page:            a.page,
-      summary:         a.summary,
-      detailedSummary: a.detailed_summary,
-      businessImpact:  a.business_impact,
-      functions:       a.functions as any[],
-      relevanceScore:  a.relevance_score,
-      sector:          a.sector ?? null,
-      swot:            a.swot ?? null,
-      strategicRead:   a.strategic_read ?? [],
-    }));
+      const text = response?.text || '{}';
+      const parsed = JSON.parse(text);
+      result = ReportSchema.parse(parsed);
 
-    const filename = filePath.split(/[/\\]/).pop() ?? 'newspaper.pdf';
-    return saveReport(filename, articles);
-  } finally {
-    try {
-      await ai.files.delete({ name: fileUpload.name ?? '' });
-    } catch (e) {
-      console.warn('Could not delete Gemini file:', e);
+      break; // success
+    } catch (err: any) {
+      retries--;
+      console.warn('Generation failed, retries left:', retries, err.message);
+      if (retries < 0) {
+        throw new Error('Failed to generate a valid report: ' + err.message);
+      }
     }
   }
+
+  // Map Gemini output -> DB types -> save to SQLite
+  const articles = (result!.articles).map((a) => ({
+    headline:        a.headline,
+    page:            a.page,
+    summary:         a.summary,
+    detailedSummary: a.detailed_summary,
+    businessImpact:  a.business_impact,
+    functions:       a.functions as any[],
+    relevanceScore:  a.relevance_score,
+    sector:          a.sector ?? null,
+    swot:            a.swot ?? null,
+    strategicRead:   a.strategic_read ?? [],
+  }));
+
+  return saveReport(displayName, articles);
 }
