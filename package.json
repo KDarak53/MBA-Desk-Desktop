@@ -1,6 +1,6 @@
 {
   "name": "mba-desk",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "MBA Newspaper Intelligence Desktop App",
   "main": "dist-electron/main.js",
   "scripts": {
